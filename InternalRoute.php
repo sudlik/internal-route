@@ -1,7 +1,7 @@
 <?php
 
 /** Internal Router
- * @brief Inspirated by Kohana Route
+ * @brief Inspired by Kohana Route
  */
 class Internal
 {
