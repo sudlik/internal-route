@@ -3,7 +3,7 @@
 /** Internal Router
  * @brief Inspired by Kohana Route
  */
-class Internal
+class InternalRoute
 {
     const MESSAGE_CONSTRUCT = 'Invalid parameter: :type';
     const MESSAGE_SET       = 'Invalid parameters: :name, :path';
@@ -30,8 +30,7 @@ class Internal
         '#INTERNAL_TOKEN_D#' => ')',
     ];
     
-    private static $PATH  = [];
-    private static $CACHE = FALSE;
+    private static $PATH = [];
     
     private $Type;
     private $SplFileInfo;
@@ -42,13 +41,6 @@ class Internal
         $this->Type        = $type;
         $this->SplFileInfo = $SplFileInfo;
         $this->Last        = $last;
-    }
-    
-    public function __destruct()
-    {
-        if (self::$CACHE) {
-            Cache::instance()->set(__CLASS__, self::$PATH);
-        }
     }
     
     private static function get_helper($match)
@@ -67,9 +59,9 @@ class Internal
         return is_scalar($name) || is_null($name);
     }
     
-    private static function assert($test, $message, $params)
+    private static function assert($test, $message, $params = [])
     {
-        if ($test) {
+        if (!$test) {
             throw new Exception(strtr($message, $params));
 
             return false;
@@ -86,16 +78,6 @@ class Internal
     public static function tokenToChar($string)
     {
         return preg_replace(array_keys(self::$TOKENTOCHAR), self::$TOKENTOCHAR, $string);
-    }
-    
-    public static function cache($cache = null)
-    {
-        if (is_bool($cache)) {
-            self::$CACHE = $cache;
-        } else {
-            self::$PATH = Cache::instance()->get(__CLASS__);
-            return self::$PATH;
-        }
     }
     
     public static function set($name = 'default', $path = '', $type = null, array $default = [])
@@ -122,19 +104,18 @@ class Internal
             
             $default    = self::$PATH[$name]['default'];
             $type       = self::$PATH[$name]['type'];
-            $self       = __CLASS__;
 
-            $path = self::_tokenToChar(
+            $path = self::tokenToChar(
                 preg_replace_callback(
                     self::PATTERN_OPTIONAL,
-                    array('self', '_get_helper'),
+                    ['self', 'get_helper'],
                     preg_replace_callback(
                         self::PATTERN_VARIABLE,
-                        function ($match) use ($param, $default, $self) {
+                        function ($match) use ($param, $default) {
                             if (isset($param[$match[1]])) {
-                                return $self::charToToken($param[$match[1]]);
+                                return self::charToToken($param[$match[1]]);
                             } elseif (isset($default[$match[1]])) {
-                                return $self::charToToken($default[$match[1]]);
+                                return self::charToToken($default[$match[1]]);
                             } else {
                                 return $match[0];
                             }
@@ -145,12 +126,12 @@ class Internal
             );
 
             $SplFileInfo = new SplFileInfo($path);
-            
             self::assert(!strstr($path, '<'), self::MESSAGE_TRANSFORM);
             
             if (!$type && $SplFileInfo->isReadable()) {
-                $type = File::mime($path);
+                $type = (new finfo)->file($path, FILEINFO_MIME_TYPE);
             }
+
             return new self($SplFileInfo, $type, !!preg_match('#\\' . DIRECTORY_SEPARATOR . '$#', $path));
         }
     }
@@ -173,7 +154,7 @@ class Internal
     public function type()
     {
         if (!$this->Type && $this->SplFileInfo->isReadable()) {
-            $this->Type = File::mime($this->SplFileInfo->getPathname());
+            $this->Type = (new finfo)->file($this->SplFileInfo->getPathname(), FILEINFO_MIME_TYPE);
         }
 
         return $this->Type;
