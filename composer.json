@@ -1,13 +1,15 @@
 {
-    "name": "sudlik/internal-route",
-    "description": "Internal route inspired by Kohana Route",
-    "require": {
-        "kohana/cache": "3.3.*"
+    "name"      : "sudlik/internal-router",
+    "autoload": {
+        "psr-0": {
+            "": "src/sudlik/internal-router/"
+        }
     },
-    "authors": [
+    "require"   : {},
+    "authors"   : [
         {
-            "name": "Marek 'Sudlik' Sudoł",
-            "email": "sudlik@sudlik.pl"
+            "name"  : "Marek 'Sudlik' Sudoł",
+            "email" : "sudlik@sudlik.pl"
         }
     ]
 }

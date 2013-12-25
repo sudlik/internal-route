@@ -1,15 +1,19 @@
 <?php
 
-require 'InternalRoute.php';
+require 'vendor/autoload.php';
 
-InternalRoute::set('test', '<name>.<ext>', null, ['name' => 'InternalRoute', 'ext' => 'php']);
+use Sudlik\InternalRouter\Collection;
 
-$InternalRoute = InternalRoute::get('test');
+$Collection = new Collection;
 
-var_dump('readable', $InternalRoute->readable());
-var_dump('writable', $InternalRoute->writable());
-var_dump('path', $InternalRoute->path());
-var_dump('type', $InternalRoute->type());
-var_dump('modified', $InternalRoute->modified());
-var_dump('file', $InternalRoute->file());
-var_dump('dir', $InternalRoute->dir());
+$Collection->create('class', 'src/sudlik/internal-router/<path>/<name>.<ext>', ['name' => 'Route', 'ext' => 'php']);
+
+$Route = $Collection->offsetGet('class')->render(['path' => 'Sudlik/InternalRouter']);
+
+var_dump('readable', $Route->isReadable());
+var_dump('writable', $Route->isWritable());
+var_dump('orginal path', $Route->getOriginalPath());
+var_dump('type', $Route->getMimeType());
+var_dump('modified', $Route->getMTime());
+var_dump('file', $Route->isFile());
+var_dump('dir', $Route->isDir());
